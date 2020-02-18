@@ -8,6 +8,10 @@ var logger = require('morgan');
 var graphqlHTTP = require('express-graphql');
 var schema = require('./graphql/schema');
 
+//MongoDB
+var connect = require('./database/database');
+connect();
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
