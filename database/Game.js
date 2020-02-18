@@ -17,7 +17,7 @@ var playerSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    Cards: [cardSchema]
+    cards: [cardSchema]
 })
 
 var turnSchema = new mongoose.Schema({
@@ -25,9 +25,9 @@ var turnSchema = new mongoose.Schema({
 })
 
 var gameSchema = new mongoose.Schema({
-    Player: playerSchema,
-    Monster: playerSchema,
-    Turns: [turnSchema]
+    player: playerSchema,
+    monster: playerSchema,
+    turns: [turnSchema]
 })
 
 module.exports = mongoose.model('Game', gameSchema);
