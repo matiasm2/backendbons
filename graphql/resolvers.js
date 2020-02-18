@@ -4,8 +4,9 @@ var getCard = require('../game/cards');
 
 var resolvers = {
     Query: {
-        async Cards(root, { gameId }) {            
-            return await Game.findById(gameId).Player.Cards;
+        async Cards(root, { gameId }) {
+            var cards = await Game.findById(gameId);                      
+            return cards.get('Player').get('Cards');
         },
         async Game(root, { id }) {
             return await Game.findById(id);
@@ -13,11 +14,13 @@ var resolvers = {
         // async Games (root) {            
         //     return await Game.find();
         // },
-        async Monster(root, { gameId }) {            
-            return await Game.findById(gameId).Monster;
+        async Monster(root, { gameId }) {    
+            const monster = await Game.findById(gameId);
+            return monster.get('Monster');
         },
-        async Player(root, { gameId }) {            
-            return await Game.findById(gameId).Player;
+        async Player(root, { gameId }) { 
+            const player = await Game.findById(gameId);           
+            return player.get('Player');
         }        
     },
     Mutation: {
