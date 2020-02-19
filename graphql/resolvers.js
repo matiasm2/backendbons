@@ -1,6 +1,6 @@
 var Game = require('../database/Game')
 
-var getCard = require('../game/cards');
+var Cards = require('../game/cards');
 
 var resolvers = {
     Query: {
@@ -25,45 +25,40 @@ var resolvers = {
     },
     Mutation: {
         async createGame(_, { input }) {
-            console.log(getCard());
+            console.log(Cards.getCard());
             
             const newGame = new Game({
                 player: {
                     name: input.playerName,
-                    cards: [getCard(), getCard(), getCard(), getCard()]
+                    cards: [Cards.getCard(), Cards.getCard(), Cards.getCard(), Cards.getCard()]
                 }
                 ,monster: {
                     shield: 10,
-                    cards: [getCard(), getCard(), getCard(), getCard()]
+                    cards: [Cards.getCard(), Cards.getCard(), Cards.getCard(), Cards.getCard()]
                 }});
             await newGame.save();
             return newGame;
         },
         async nextTurn(_, { input }){
             var game = await Game.findById(input.gameId);
-            var cards = game.get('player').get('cards')
-            console.log(cards);
+            const playedCardIndex = cards.findIndex(card => (card.get('_id').toString() === input.cardId));
+
+            const monsterCardIndex = Math.floor(Math.random() * (5 - 1) + 1)-1;
             
-            const playedCardIndex = cards.findIndex(card => (card._id=input.cardId));
-            const playedCard = cards[playedCardIndex];
-    
-            var newCards = [
-                ...cards.slice(0, playedCardIndex),
-                ...cards.slice(playedCardIndex+1, cards.length),
-                getCard()
-            ]
-
-            game['player']['cards'] = newCards
-
-            console.log(newCards);
+            var monsterEffect = game.get('monster').get('cards')[monsterCardIndex]
             
+            const newGame = await Game.update({ _id: input.gameId}, {
+                player: {
+                    cards: Cards.newHand(game.get('player').get('cards'), playedCardIndex)
+                },
+                monster: {
+                    cards: Cards.newHand(game.get('player').get('cards'), monsterCardIndex)
+                }
+            });
 
-            const newGame = await Game.findByIdAndUpdate(input.gameId, game, { new: true});
             
-
-            var monsterEffect = game.get('monster').get('cards')[Math.floor(Math.random() * (5 - 1) + 1)-1]
             return {
-                Game: game,
+                Game: newGame,
                 monsterEffect: monsterEffect
             }
         }
