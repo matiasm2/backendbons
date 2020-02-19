@@ -41,8 +41,26 @@ var resolvers = {
         },
         async nextTurn(_, { input }){
             var game = await Game.findById(input.gameId);
+            var cards = game.get('player').get('cards')
+            console.log(cards);
             
-            var playedCard = game.get('player').get('cards').find(card => (card._id=input.cardId));
+            const playedCardIndex = cards.findIndex(card => (card._id=input.cardId));
+            const playedCard = cards[playedCardIndex];
+    
+            var newCards = [
+                ...cards.slice(0, playedCardIndex),
+                ...cards.slice(playedCardIndex+1, cards.length),
+                getCard()
+            ]
+
+            game['player']['cards'] = newCards
+
+            console.log(newCards);
+            
+
+            const newGame = await Game.findByIdAndUpdate(input.gameId, game, { new: true});
+            
+
             var monsterEffect = game.get('monster').get('cards')[Math.floor(Math.random() * (5 - 1) + 1)-1]
             return {
                 Game: game,
