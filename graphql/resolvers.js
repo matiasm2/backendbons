@@ -41,24 +41,35 @@ var resolvers = {
         },
         async nextTurn(_, { input }){
             var game = await Game.findById(input.gameId);
-            const playedCardIndex = cards.findIndex(card => (card.get('_id').toString() === input.cardId));
+            const playedCardIndex = game.get('player').get('cards').findIndex(card => (card.get('_id').toString() === input.cardId));
 
-            const monsterCardIndex = Math.floor(Math.random() * (5 - 1) + 1)-1;
-            
-            var monsterEffect = game.get('monster').get('cards')[monsterCardIndex]
-            
-            const newGame = await Game.update({ _id: input.gameId}, {
-                player: {
-                    cards: Cards.newHand(game.get('player').get('cards'), playedCardIndex)
-                },
-                monster: {
-                    cards: Cards.newHand(game.get('player').get('cards'), monsterCardIndex)
-                }
-            });
+            console.log(playedCardIndex);
 
+            
+            //Se ejecuta el turno del jugador
+            var playerTurn = Cards.applyEffect(game.get('player'), game.get('monster'), game.get('player').get('cards')[playedCardIndex]);
+            game['player'] = playerTurn['player'];
+            game['monster'] = playerTurn['affectedPlayer'];
+
+            console.log(game);
+            
+            //Se ejecuta el turno del monstruo
+            const monsterCardIndex = Math.floor(Math.random() * (5 - 1) + 1)-1;         
+            var monsterEffect = game.get('monster').get('cards')[monsterCardIndex];
+            var monsterTurn = Cards.applyEffect(game.get('monster'), game.get('player'), game.get('monster').get('cards')[monsterCardIndex]);
+            game['monster'] = monsterTurn['player'];
+            game['player'] = monsterTurn['affectedPlayer'];
+            
+            //Se le asigna una nueva mano de cartas a cada jugador
+            game['player']['cards'] = Cards.newHand(game.get('player').get('cards'), playedCardIndex);
+            game['monster']['cards'] = Cards.newHand(game.get('player').get('cards'), monsterCardIndex);
+            
+            const newGame = await Game.findByIdAndUpdate(input.gameId, game, { new: true });
+
+            console.log(newGame);
             
             return {
-                Game: newGame,
+                game: newGame,
                 monsterEffect: monsterEffect
             }
         }

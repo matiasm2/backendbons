@@ -1,4 +1,6 @@
 const cardsEffects = ['Heal','Damage','Shield','Horror']
+const maxHp = 20;
+const maxShield = 10;
 
 function getCard() {
     return {
@@ -7,22 +9,43 @@ function getCard() {
     }
 }
 
-function applyEffect(player, playedCard){
-    if (player.shield){
-        player
+function applyEffect(player, affectedPlayer, playedCard){
+    console.log(playedCard.get('effect'));
+    
+
+    switch(playedCard.get('effect')) {
+        case 'Heal':
+            player['hp'] += playedCard.get('value');
+            (player['hp'] > 20) ? player['hp'] = maxHp : {};
+            break;
+
+        case 'Damage':
+            affectedPlayer['shield'] -= playedCard.get('value');
+            (affectedPlayer['shield'] < 0) ? (affectedPlayer['hp'] += affectedPlayer['shield']) && (affectedPlayer['shield'] = 0) : {};
+            (affectedPlayer['hp'] < 0) ? affectedPlayer['hp'] = 0 : {};  
+            break;
+
+        case 'Shield':
+            player['shield'] += playedCard.get('value');
+            (player['shield'] > maxShield) ? player['shield'] = maxShield : {};
+            break;
+
+        case 'Horror':
+            break;
     }
-    return
+    return {player: player, affectedPlayer: affectedPlayer}
 }
 
 function newHand(cards, playedCardIndex){
     return newCards = [
         ...cards.slice(0, playedCardIndex),
         ...cards.slice(playedCardIndex+1, cards.length),
-        Cards.getCard()
+        getCard()
     ]
 }
 
 module.exports = {
+    applyEffect: applyEffect,
     getCard: getCard,
-    
+    newHand: newHand
 }
