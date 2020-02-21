@@ -24,6 +24,12 @@ const typeDef = `
     input GameInput {
         playerName: String!
     }
+    type Monster {
+        _id: ID
+        hp: Int
+        shield: Int
+        cards: [Card]
+    }
     type Player {
         _id: ID
         name: String
@@ -31,21 +37,21 @@ const typeDef = `
         shield: Int
         cards: [Card]
     }
-    type Monster {
-        _id: ID
-        hp: Int
-        shield: Int
-        cards: [Card]
-    }
-    type Turn {
-        _ID: ID
-        cardPlayed: Card
+    type PlayedTurn{
         game: Game
+        monsterEffect: Card
+        turnsPlayed: Int
+    }
+
+
+    type Turn {
+        _id: ID
+        playedCard: Card
         monsterEffect: Card
     }
     input TurnInput{
         gameId: ID!
-        cardId: ID!
+        cardId: ID
     }
     
 
@@ -54,7 +60,7 @@ const typeDef = `
     type Mutation {
         createGame(input: GameInput): Game
         #nextTurn(gameId: ID, cardId: ID): Turn
-        nextTurn(input: TurnInput): Turn
+        nextTurn(input: TurnInput): PlayedTurn
     }
 `
 

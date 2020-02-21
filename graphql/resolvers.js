@@ -41,17 +41,19 @@ var resolvers = {
         },
         async nextTurn(_, { input }){
             var game = await Game.findById(input.gameId);
-            const playedCardIndex = game.get('player').get('cards').findIndex(card => (card.get('_id').toString() === input.cardId));
+            var turn = {};
 
-            console.log(playedCardIndex);
-
-            
             //Se ejecuta el turno del jugador
-            var playerTurn = Cards.applyEffect(game.get('player'), game.get('monster'), game.get('player').get('cards')[playedCardIndex]);
-            game['player'] = playerTurn['player'];
-            game['monster'] = playerTurn['affectedPlayer'];
-
-            console.log(game);
+            if (input.cardId){
+                const playedCardIndex = game.get('player').get('cards').findIndex(card => (card.get('_id').toString() === input.cardId));
+                if (playedCardIndex != -1){
+                    var playerTurn = Cards.applyEffect(game.get('player'), game.get('monster'), game.get('player').get('cards')[playedCardIndex]);
+                    game['player'] = playerTurn['player'];
+                    game['monster'] = playerTurn['affectedPlayer'];
+                    turn['playedCard'] = game.get('player').get('cards')[playedCardIndex];
+                    game['player']['cards'] = Cards.newHand(game.get('player').get('cards'), playedCardIndex);
+                } 
+            }
             
             //Se ejecuta el turno del monstruo
             const monsterCardIndex = Math.floor(Math.random() * (5 - 1) + 1)-1;         
@@ -59,18 +61,16 @@ var resolvers = {
             var monsterTurn = Cards.applyEffect(game.get('monster'), game.get('player'), game.get('monster').get('cards')[monsterCardIndex]);
             game['monster'] = monsterTurn['player'];
             game['player'] = monsterTurn['affectedPlayer'];
-            
-            //Se le asigna una nueva mano de cartas a cada jugador
-            game['player']['cards'] = Cards.newHand(game.get('player').get('cards'), playedCardIndex);
-            game['monster']['cards'] = Cards.newHand(game.get('player').get('cards'), monsterCardIndex);
-            
-            const newGame = await Game.findByIdAndUpdate(input.gameId, game, { new: true });
+            turn['monsterEffect'] = game.get('monster').get('cards')[monsterCardIndex];
+            game['monster']['cards'] = Cards.newHand(game.get('monster').get('cards'), monsterCardIndex);
 
-            console.log(newGame);
+            game['turns'].push(turn)   
+            const newGame = await Game.findByIdAndUpdate(input.gameId, game, { new: true });            
             
             return {
                 game: newGame,
-                monsterEffect: monsterEffect
+                monsterEffect: monsterEffect,
+                turnsPlayed: game['turns'].length
             }
         }
     }

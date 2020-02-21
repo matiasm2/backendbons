@@ -21,7 +21,8 @@ var playerSchema = new mongoose.Schema({
 })
 
 var turnSchema = new mongoose.Schema({
-    cardPlayed: cardSchema
+    playedCard: cardSchema,
+    monsterEffect: cardSchema
 })
 
 var gameSchema = new mongoose.Schema({
